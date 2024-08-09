@@ -5,35 +5,29 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
+import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
-import androidx.compose.ui.platform.LocalContext
-
-import com.android.volley.toolbox.ImageRequest
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        //enableEdgeToEdge()
         setContent {
             UserProfileSection(
                 userProfile = UserProfile(
-                    profilePictureUrl = "https://example.com/profile_picture.jpg",
+                    profilePictureUrl = "https://cdn-icons-png.flaticon.com/128/4322/4322991.png",
                     username = "john_doe",
                     bio = "Software engineer and cat lover",
                     isFollowing = true,
@@ -45,6 +39,7 @@ class MainActivity : ComponentActivity() {
         }
     }
 }
+
 @Composable
 fun UserProfileSection(
     userProfile: UserProfile,
@@ -53,37 +48,49 @@ fun UserProfileSection(
     Column(
         modifier = modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .padding(horizontal = 16.dp, vertical = 24.dp)
     ) {
-        // Profile picture
-        UserProfilePicture(
-            imageUrl = userProfile.profilePictureUrl,
-            size = 80.dp
-        )
-
-        // Username and bio
-        Column(
-            modifier = Modifier.padding(top = 16.dp)
+        // Profile picture and Username/Bio
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text(
-                text = userProfile.username,
-                style = MaterialTheme.typography.headlineSmall
+            UserProfilePicture(
+                imageUrl = userProfile.profilePictureUrl,
+                size = 100.dp
             )
-            Text(
-                text = userProfile.bio,
-                style = MaterialTheme.typography.bodyMedium
-            )
+
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .alignByBaseline()
+            ) {
+                Text(
+                    text = userProfile.username,
+                    style = MaterialTheme.typography.headlineMedium
+                )
+                Text(
+                    text = userProfile.bio,
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 4.dp)
+                )
+            }
         }
 
         // Follow button
         FollowButton(
             isFollowing = userProfile.isFollowing,
-            onClick = { /* handle follow/unfollow action */ }
+            onClick = { /* handle follow/unfollow action */ },
+            modifier = Modifier.padding(top = 16.dp)
         )
 
         // Profile stats
         Row(
-            modifier = Modifier.padding(top = 16.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 16.dp),
+            horizontalArrangement = Arrangement.SpaceEvenly
         ) {
             ProfileStat(
                 label = "Posts",
@@ -104,37 +111,41 @@ fun UserProfileSection(
 @Composable
 private fun UserProfilePicture(
     imageUrl: String,
-    size: Dp
+    size: Dp,
+    modifier: Modifier = Modifier
 ) {
     Image(
-        bitmap = rememberImageRequest(imageUrl).await().value,
+        painter = rememberAsyncImagePainter(
+            ImageRequest.Builder(LocalContext.current)
+                .data(imageUrl)
+                .crossfade(true)
+                .build()
+        ),
         contentDescription = "Profile picture",
-        modifier = Modifier
-            .size(18.dp)
+        contentScale = ContentScale.Crop,
+        modifier = modifier
+            .size(size)
             .clip(CircleShape)
-            .border(1.dp, Color.Gray, CircleShape)
+            .border(2.dp, MaterialTheme.colorScheme.primary, CircleShape)
     )
-}
-
-@Composable
-private fun rememberImageRequest(url: String): coil.request.ImageRequest {
-    val context = LocalContext.current
-    return com.android.volley.toolbox.Builder(context)
-        .data(url)
-        .build()ImageRequest
 }
 
 @Composable
 private fun FollowButton(
     isFollowing: Boolean,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Button(
         onClick = onClick,
-        modifier = Modifier.padding(top = 8.dp)
+        modifier = modifier.fillMaxWidth(),
+        colors = ButtonDefaults.buttonColors(
+            containerColor = if (isFollowing) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.primary
+        )
     ) {
         Text(
-            text = if (isFollowing) "Unfollow" else "Follow"
+            text = if (isFollowing) "Unfollow" else "Follow",
+            color = MaterialTheme.colorScheme.onPrimary
         )
     }
 }
@@ -142,18 +153,21 @@ private fun FollowButton(
 @Composable
 private fun ProfileStat(
     label: String,
-    value: String
+    value: String,
+    modifier: Modifier = Modifier
 ) {
     Column(
-        modifier = Modifier.padding(end = 16.dp)
+        horizontalAlignment = Alignment.CenterHorizontally,
+        modifier = modifier
     ) {
         Text(
             text = value,
-            style = MaterialTheme.typography.headlineMedium
+            style = MaterialTheme.typography.headlineSmall
         )
         Text(
             text = label,
-            style = MaterialTheme.typography.bodyMedium
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
         )
     }
 }
@@ -167,3 +181,19 @@ data class UserProfile(
     val followerCount: Int,
     val followingCount: Int
 )
+
+@Preview
+@Composable
+fun PreviewUserProfileSection() {
+    UserProfileSection(
+        userProfile = UserProfile(
+            profilePictureUrl = "https://cdn-icons-png.flaticon.com/128/4322/4322991.png",
+            username = "john_doe",
+            bio = "Software engineer and cat lover",
+            isFollowing = true,
+            postCount = 100,
+            followerCount = 1000,
+            followingCount = 500
+        )
+    )
+}
