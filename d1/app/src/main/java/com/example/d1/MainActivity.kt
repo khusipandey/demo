@@ -78,14 +78,14 @@ fun UserProfileSection(
             }
         }
 
-        // Follow button
+
         FollowButton(
             isFollowing = userProfile.isFollowing,
             onClick = { /* handle follow/unfollow action */ },
             modifier = Modifier.padding(top = 16.dp)
         )
 
-        // Profile stats
+
         Row(
             modifier = Modifier
                 .fillMaxWidth()
